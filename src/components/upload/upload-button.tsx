@@ -3,7 +3,7 @@
 import {useState} from "react";
 
 import {Button} from "@/components/ui/button";
-// import UploadModal from "@/components/upload/upload-modal";
+import UploadModal from "@/components/upload/upload-modal";
 
 const UploadButton = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -20,13 +20,13 @@ const UploadButton = () => {
       >
         Upload
       </Button>
-      {/* <UploadModal
+      <UploadModal
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}
         uploadOptions={{
           folder: "/moments",
         }}
-      /> */}
+      />
     </>
   );
 };

@@ -1,3 +1,8 @@
+import { getAllMedia } from "@/actions/media.action";
+import GridLoader from "@/components/media/grid-loader";
+import MasonryGrid from "@/components/media/masonry-grid";
+import { Suspense } from "react";
+
 export default function Home() {
   return (
     <>
@@ -21,6 +26,27 @@ export default function Home() {
       <p className="mb-8 text-gray-600 dark:text-gray-400">
         Click on any item to edit and transform it
       </p>
+
+      <Suspense fallback={<GridLoader />}>
+        <MediaGrid />
+      </Suspense>
     </>
   );
+}
+
+async function MediaGrid() {
+  const result = await getAllMedia({ page: 1, pageSize: 50 });
+
+  if (!result.success) {
+    return (
+      <div className="py-24 text-center">
+        <h3 className="mb-2 text-lg">Oops, failed to load media try again</h3>
+        <p className="text-gray-500">
+          {result.error?.message || "Something went wrong"}
+        </p>
+      </div>
+    );
+  }
+
+  return <MasonryGrid media={result.data!.media} />;
 }
