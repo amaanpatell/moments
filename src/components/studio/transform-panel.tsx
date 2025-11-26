@@ -1,6 +1,7 @@
 import { TransformationConfig } from "@/types";
 import { type SectionKey } from "./dock";
 import { ImageBasicsPanel } from "./image-basics-panel";
+import { ImageAIPanel } from "./image-ai-panel";
 
 type TransformPanelProps = {
   activeSection: SectionKey;
@@ -50,7 +51,18 @@ export function TransformPannel({
       // case "overlays":
       //   return <p>Overlays & Effects</p>;
       case "ai":
-        return <p>AI Magic</p>;
+        if (transforms.type === "IMAGE") {
+          return (
+            <ImageAIPanel
+              transforms={transforms.ai || {}}
+              onTransformChange={(ai) =>
+                onTransformChange({ ...transforms, ai: ai })
+              }
+            />
+          );
+        } else if (transforms.type === "VIDEO") {
+          return <p>Video AI Magic</p>;
+        }
       case "audio":
         return <p>Audio</p>;
       default:
