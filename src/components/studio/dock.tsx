@@ -20,7 +20,7 @@ import {
 
 export type SectionKey =
   | "basics"
-  | "overlays"
+  // | "overlays"
   | "enhancements"
   | "ai"
   | "audio";
@@ -42,7 +42,7 @@ export function StudioDock({
     Icon: React.ComponentType<{className?: string}>;
   }> = [
     {key: "basics", label: "Basics", Icon: SlidersHorizontal},
-    {key: "overlays", label: "Overlays", Icon: Layers},
+    // {key: "overlays", label: "Overlays", Icon: Layers},
     {key: "enhancements", label: "Enhancements", Icon: Sparkles},
     {key: "ai", label: "AI Magic", Icon: Wand2},
     {key: "audio", label: "Audio", Icon: Volume2},

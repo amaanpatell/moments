@@ -10,6 +10,7 @@ import { buildImageKitUrl } from "@/lib/transformation-utils";
 import { StudioHeader } from "./studio-header";
 import UrlBar from "./url-bar";
 import PreviewCanvas from "./preview-canvas";
+import { TransformPannel } from "./transform-panel";
 
 type StudioClientProps = {
   media: SelectMediaModel;
@@ -68,8 +69,20 @@ export default function StudioClient({ media }: StudioClientProps) {
           mediaType={media.mediaType!}
         />
 
-        
+        <TransformPannel
+          activeSection={activeSection}
+          transforms={history.state}
+          onTransformChange={(newTransforms) => {
+            history.set(newTransforms);
+          }}
+        />
       </section>
+
+      <StudioDock
+        activeSection={activeSection}
+        onSelect={setActiveSection}
+        isVideo={media.mediaType === "VIDEO"}
+      />
     </section>
   );
 }

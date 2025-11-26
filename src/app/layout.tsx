@@ -47,11 +47,11 @@ export default function RootLayout({
               <Navbar />
             </header>
 
-            <main className="mx-auto w-full max-w-7xl grow p-6 lg:px-8">
+            <main className="mx-auto w-full max-w-7xl grow p-6 lg:px-8 border-l border-r border-dashed border-rose-100 dark:border-pink-300/20">
               {children}
             </main>
 
-            <footer>
+            <footer className="border-t border-dashed border-rose-100 dark:border-pink-300/20">
               <Footer />
             </footer>
           </Providers>
