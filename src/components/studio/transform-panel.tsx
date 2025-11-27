@@ -2,6 +2,7 @@ import { TransformationConfig } from "@/types";
 import { type SectionKey } from "./dock";
 import { ImageBasicsPanel } from "./image-basics-panel";
 import { ImageAIPanel } from "./image-ai-panel";
+import ImageEnhancementsPanel from "./image-enhancements-panel";
 
 type TransformPanelProps = {
   activeSection: SectionKey;
@@ -23,7 +24,7 @@ export function TransformPannel({
       // case "overlays":
       //   return "Overlays & Effects";
       case "ai":
-        return "AI Magic";
+        return "AI Magic (beta)";
       case "audio":
         return "Audio";
       default:
@@ -47,6 +48,16 @@ export function TransformPannel({
           return <>Video Basics</>;
         }
       case "enhancements":
+        if (transforms.type === "IMAGE") {
+          return (
+            <ImageEnhancementsPanel
+              transforms={transforms.enhancements || {}}
+              onTransformChange={(e) =>
+                onTransformChange({ ...transforms, enhancements: e })
+              }            
+            />
+          )
+        }
         return <p>Enhancements</p>;
       // case "overlays":
       //   return <p>Overlays & Effects</p>;

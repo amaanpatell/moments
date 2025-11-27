@@ -1,4 +1,4 @@
-import {TransformationConfig} from "@/types";
+import { TransformationConfig } from "@/types";
 import {
   AiMagic,
   BasicsTransform,
@@ -49,7 +49,7 @@ function videoBasicsToParams(b: VideoBasics): string[] {
 function overlaysToParams(overlays: Overlay[]): string[] {
   const parts: string[] = [];
 
-  overlays.forEach(o => {
+  overlays.forEach((o) => {
     if (o.type === "image") {
       const params: string[] = ["l-image"];
       params.push(`i-${o.src}`);
@@ -115,7 +115,7 @@ function overlaysToParams(overlays: Overlay[]): string[] {
 
 function videoOverlaysToParams(overlays: VideoOverlay[]): string[] {
   const parts: string[] = [];
-  overlays.forEach(o => {
+  overlays.forEach((o) => {
     const p: string[] = [];
     if (o.type === "image") {
       p.push("l-image", `i-${o.src}`);

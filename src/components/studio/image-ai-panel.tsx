@@ -1,14 +1,5 @@
-import {
-  Crop,
-  Edit,
-  Focus,
-  Grid3X3,
-  NotebookPen,
-  Scissors,
-  Sparkles,
-  Sun,
-  Target,
-} from "lucide-react";
+"use client";
+import { Scissors, Target, Paintbrush } from "lucide-react";
 
 import {
   Accordion,
@@ -27,15 +18,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { AiMagic } from "@/types/image-transformations";
+import { Switch } from "@/components/ui/switch";
+
+type AiMagic = {
+  background?: {
+    remove?: boolean;
+    mode?: "standard" | "economy";
+  };
+  shadowLighting?: {
+    dropShadow?: {
+      azimuth?: number;
+      elevation?: number;
+      saturation?: number;
+    };
+  };
+  cropping?: {
+    type?: "smart" | "face" | "object";
+    objectName?: string;
+    zoom?: number;
+    width?: number;
+    height?: number;
+  };
+};
 
 type AiMagicControlsProps = {
   transforms: AiMagic;
   onTransformChange: (transforms: AiMagic) => void;
 };
-// -----------------------------------------------------
 
-// Helper for AiMagic cropping type
 export type AiCropType = "smart" | "face" | "object";
 
 const aiCropModes = [
@@ -45,7 +55,7 @@ const aiCropModes = [
   { label: "Object-aware Crop", value: "object" },
 ];
 
-const cocoGlasses = [
+const cocoObjects = [
   { label: "None", value: "none" },
   { label: "Person", value: "person" },
   { label: "Bicycle", value: "bicycle" },
@@ -148,13 +158,36 @@ export function ImageAIPanel({
     onTransformChange({ ...transforms, ...patch });
   };
 
+  const updateBackground = (
+    patch: Partial<NonNullable<AiMagic["background"]>>
+  ) => {
+    const newBackground = {
+      ...(transforms.background || {}),
+      ...patch,
+    };
+
+    const isEffectivelyEmpty = !newBackground.remove;
+
+    if (isEffectivelyEmpty) {
+      update({ background: undefined });
+    } else {
+      update({ background: newBackground });
+    }
+  };
+
   const updateCropping = (patch: Partial<NonNullable<AiMagic["cropping"]>>) => {
-    update({
-      cropping: {
-        ...(transforms.cropping || {}),
-        ...patch,
-      },
-    });
+    const newCropping = {
+      ...(transforms.cropping || {}),
+      ...patch,
+    };
+
+    const isEffectivelyEmpty = !newCropping.type;
+
+    if (isEffectivelyEmpty) {
+      update({ cropping: undefined });
+    } else {
+      update({ cropping: newCropping });
+    }
   };
 
   const resetAICropping = () => {
@@ -168,11 +201,77 @@ export function ImageAIPanel({
   const currentCropType = transforms.cropping?.type || "none";
   const currentObjectName = transforms.cropping?.objectName;
   const currentZoom = transforms.cropping?.zoom || 1;
+  const currentCropWidth = transforms.cropping?.width;
+  const currentCropHeight = transforms.cropping?.height;
 
   return (
     <div className="h-full flex flex-col space-y-1 scrollbar-hidden overflow-auto">
       <div>
-        <Accordion type="multiple" defaultValue={["ai-cropping"]}>
+        <Accordion type="multiple">
+          {/* Background Removal */}
+          <AccordionItem value="bg-removal">
+            <AccordionTrigger className="py-3 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Scissors className="size-4" />
+                Background Removal
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2 px-0.5">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium" htmlFor="remove-bg">
+                    Remove background
+                  </Label>
+                  <Switch
+                    id="remove-bg"
+                    checked={!!transforms.background?.remove}
+                    onCheckedChange={(checked) => {
+                      updateBackground({ remove: checked });
+                    }}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* AI Drop Shadow */}
+          {/* <AccordionItem value="drop-shadow">
+            <AccordionTrigger className="py-3 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Paintbrush className="size-4" />
+                AI Drop Shadow
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2 px-0.5">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label
+                    className="text-xs font-medium"
+                    htmlFor="drop-shadow-toggle"
+                  >
+                    Enable drop shadow
+                  </Label>
+                  <Switch
+                    id="drop-shadow-toggle"
+                    checked={!!transforms.shadowLighting?.dropShadow}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        updateDropShadow({});
+                      } else {
+                        update({ shadowLighting: undefined });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-2">
+                Note: Image must have a transparent background. Use background
+                removal first.
+              </p>
+            </AccordionContent>
+          </AccordionItem> */}
+
+          {/* AI Cropping */}
           <AccordionItem value="ai-cropping">
             <AccordionTrigger className="py-3 cursor-pointer">
               <div className="flex items-center gap-2">
@@ -210,53 +309,96 @@ export function ImageAIPanel({
                 </Select>
               </div>
 
-              {/* Conditional div for Object-aware Crop */}
+              {/* Object-aware Crop Object Selection */}
               {currentCropType === "object" && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium">Object Name</Label>
-                    <Select
-                      value={currentObjectName || cocoGlasses[0].value}
-                      onValueChange={(value) => {
-                        if (value === "none") {
-                          updateCropping({ objectName: undefined });
-                        } else {
-                          updateCropping({
-                            objectName: value,
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger className={inputStyles} style={gradientBg}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cocoGlasses.map((mode) => (
-                          <SelectItem key={mode.value} value={mode.value}>
-                            {mode.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium">
-                      Zoom {currentZoom ? `${currentZoom.toFixed(1)}x` : "1.0x"}
-                    </Label>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Object Name</Label>
+                  <Select
+                    value={currentObjectName || "none"}
+                    onValueChange={(value) => {
+                      if (value === "none") {
+                        updateCropping({ objectName: undefined });
+                      } else {
+                        updateCropping({ objectName: value });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className={inputStyles} style={gradientBg}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cocoObjects.map((obj) => (
+                        <SelectItem key={obj.value} value={obj.value}>
+                          {obj.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-                    <Slider
-                      min={0.1}
-                      max={5.0}
-                      step={0.1}
-                      value={[currentZoom]}
-                      onValueChange={([value]) =>
+              {/* Dimensions for cropping */}
+              {currentCropType !== "none" && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">
+                      Width
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="Auto"
+                      value={currentCropWidth || ""}
+                      onChange={(e) =>
                         updateCropping({
-                          zoom: value === 1 ? undefined : value,
+                          width: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
                         })
                       }
-                      className="w-full"
+                      className={inputStyles}
+                      style={gradientBg}
                     />
                   </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">
+                      Height
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="Auto"
+                      value={currentCropHeight || ""}
+                      onChange={(e) =>
+                        updateCropping({
+                          height: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        })
+                      }
+                      className={inputStyles}
+                      style={gradientBg}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Zoom slider */}
+              {currentCropType !== "none" && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">
+                    Zoom {currentZoom ? `${currentZoom.toFixed(1)}x` : "1.0x"}
+                  </Label>
+                  <Slider
+                    min={0.1}
+                    max={5.0}
+                    step={0.1}
+                    value={[currentZoom]}
+                    onValueChange={([value]) =>
+                      updateCropping({
+                        zoom: value === 1 ? undefined : value,
+                      })
+                    }
+                    className="w-full"
+                  />
                 </div>
               )}
 
@@ -272,6 +414,7 @@ export function ImageAIPanel({
         </Accordion>
       </div>
 
+      {/* Action Buttons */}
       <div className="pt-4 pb-12 px-0.5">
         <div className="flex gap-2">
           <Button
@@ -281,18 +424,6 @@ export function ImageAIPanel({
             style={gradientBg}
           >
             Reset All
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() =>
-              update({
-                background: { remove: true },
-              })
-            }
-            className={`flex-1 ${buttonStyles}`}
-            style={gradientBg}
-          >
-            Remove BG
           </Button>
         </div>
       </div>
