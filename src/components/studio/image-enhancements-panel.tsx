@@ -1,5 +1,16 @@
 "use client";
-import { Paintbrush, Droplet, Square, Sparkles } from "lucide-react";
+import {
+  Paintbrush,
+  Droplet,
+  Square,
+  Sparkles,
+  Layers2,
+  Palette,
+  RotateCw,
+  RefreshCcw,
+  RotateCcw,
+  SquareDashed,
+} from "lucide-react";
 
 import {
   Accordion,
@@ -34,6 +45,13 @@ export type Enhancements = {
     blurIntensity?: number | "auto";
     brightness?: number;
   };
+  border?: {
+    width: number | string;
+    color: string;
+  };
+  rotate?: number | "auto" | `N${number}`;
+  flip?: "h" | "v" | "h_v";
+  radius?: number | "max";
 };
 
 type ImageEnhancementsPanelProps = {
@@ -60,7 +78,9 @@ const ImageEnhancementsPanel = ({
     onTransformChange({ ...transforms, ...patch });
   };
 
-  const updateShadow = (patch: Partial<NonNullable<Enhancements["shadow"]>>) => {
+  const updateShadow = (
+    patch: Partial<NonNullable<Enhancements["shadow"]>>
+  ) => {
     const newShadow = {
       ...(transforms.shadow || {}),
       ...patch,
@@ -83,8 +103,6 @@ const ImageEnhancementsPanel = ({
     patch: Partial<NonNullable<Enhancements["background"]>>
   ) => {
     const currentBackground = transforms.background;
-    
-    // If there's no current background and no type in patch, do nothing
     if (!currentBackground && !patch.type) {
       return;
     }
@@ -94,11 +112,25 @@ const ImageEnhancementsPanel = ({
       ...patch,
     } as NonNullable<Enhancements["background"]>;
 
-    // Only update if type is defined
     if (newBackground.type) {
       update({ background: newBackground });
     } else {
       update({ background: undefined });
+    }
+  };
+
+  const updateBorder = (
+    patch: Partial<NonNullable<Enhancements["border"]>>
+  ) => {
+    const newBorder = {
+      ...(transforms.border || { width: 5, color: "000000" }),
+      ...patch,
+    } as NonNullable<Enhancements["border"]>;
+
+    if (newBorder.width && newBorder.color) {
+      update({ border: newBorder });
+    } else {
+      update({ border: undefined });
     }
   };
 
@@ -114,25 +146,148 @@ const ImageEnhancementsPanel = ({
     update({ background: undefined });
   };
 
+  const resetBorder = () => {
+    update({ border: undefined });
+  };
+
+  const resetRotate = () => {
+    update({ rotate: undefined });
+  };
+
+  const resetFlip = () => {
+    update({ flip: undefined });
+  };
+
+  const resetRadius = () => {
+    update({ radius: undefined });
+  };
+
   const currentBgType = transforms.background?.type;
 
   return (
     <div className="h-full flex flex-col space-y-1 scrollbar-hidden overflow-auto">
       <div>
         <Accordion type="multiple">
-          {/* Blur */}
-          <AccordionItem value="blur">
+          {/* Rotate & Flip & Radius */}
+          <AccordionItem value="basic-transforms">
             <AccordionTrigger className="py-3 cursor-pointer">
               <div className="flex items-center gap-2">
-                <Droplet className="size-4" />
-                Blur
+                <RotateCcw className="size-4" />
+                Basic Transforms
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2 px-0.5">
+              {/* Rotate */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Rotation</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="90"
+                    min="-360"
+                    max="360"
+                    step="1"
+                    value={
+                      typeof transforms.rotate === "number"
+                        ? transforms.rotate
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined;
+                      update({ rotate: val });
+                    }}
+                    className={inputStyles}
+                    style={gradientBg}
+                  />
+                  <Select
+                    value={transforms.rotate === "auto" ? "auto" : "manual"}
+                    onValueChange={(value) => {
+                      if (value === "auto") {
+                        update({ rotate: "auto" });
+                      } else if (transforms.rotate === "auto") {
+                        update({ rotate: 0 });
+                      }
+                    }}
+                  >
+                    <SelectTrigger
+                      className="w-1/3 rounded-full h-8 shadow-none border-transparent ring-1 ring-pink-500/20 dark:ring-pink-400/15 dark:bg-background/50"
+                      style={gradientBg}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="auto">Auto (EXIF)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Degrees (clockwise, negative for counter-clockwise)
+                </p>
+              </div>
+
+              {/* Flip */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Flip</Label>
+                <Select
+                  value={transforms.flip || "none"}
+                  onValueChange={(value) => {
+                    update({
+                      flip:
+                        value === "none"
+                          ? undefined
+                          : (value as "h" | "v" | "h_v"),
+                    });
+                  }}
+                >
+                  <SelectTrigger className={inputStyles} style={gradientBg}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="h">Horizontal (h)</SelectItem>
+                    <SelectItem value="v">Vertical (v)</SelectItem>
+                    <SelectItem value="h_v">Both (h\_v)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 space-y-2 mt5 ">
+                <Button
+                  variant="ghost"
+                  onClick={resetFlip}
+                  className={buttonStyles}
+                  style={gradientBg}
+                >
+                  Reset Flip
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={resetRotate}
+                  className={buttonStyles}
+                  style={gradientBg}
+                >
+                  Reset Rotation
+                </Button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="enhancements">
+            <AccordionTrigger className="py-3 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4" />
+                Enhancements
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2 px-0.5">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">
-                  Blur Intensity {transforms.blur ? `(${transforms.blur})` : "(0)"}
+                  Blur Intensity{" "}
+                  {transforms.blur ? `(${transforms.blur})` : "(0)"}
                 </Label>
+
                 <Slider
                   min={0}
                   max={100}
@@ -147,21 +302,11 @@ const ImageEnhancementsPanel = ({
                   Applies Gaussian blur (1-100)
                 </p>
               </div>
-            </AccordionContent>
-          </AccordionItem>
 
-          {/* Sharpen */}
-          <AccordionItem value="sharpen">
-            <AccordionTrigger className="py-3 cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Sparkles className="size-4" />
-                Sharpen
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="space-y-4 pt-2 px-0.5">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">
-                  Sharpen Amount {transforms.sharpen ? `(${transforms.sharpen})` : "(0)"}
+                  Sharpen Amount{" "}
+                  {transforms.sharpen ? `(${transforms.sharpen})` : "(0)"}
                 </Label>
                 <Slider
                   min={0}
@@ -180,106 +325,11 @@ const ImageEnhancementsPanel = ({
             </AccordionContent>
           </AccordionItem>
 
-          {/* Shadow */}
-          <AccordionItem value="shadow">
-            <AccordionTrigger className="py-3 cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Square className="size-4" />
-                Shadow
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="space-y-4 pt-2 px-0.5">
-              <p className="text-[10px] text-muted-foreground mb-2">
-                Adds shadow under solid objects in transparent images (max 2MP)
-              </p>
-
-              {/* Shadow Blur */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium">
-                  Blur {transforms.shadow?.blur ?? 10}
-                </Label>
-                <Slider
-                  min={0}
-                  max={15}
-                  step={1}
-                  value={[transforms.shadow?.blur ?? 10]}
-                  onValueChange={([value]) =>
-                    updateShadow({ blur: value === 10 ? undefined : value })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              {/* Shadow Saturation */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium">
-                  Saturation {transforms.shadow?.saturation ?? 30}
-                </Label>
-                <Slider
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={[transforms.shadow?.saturation ?? 30]}
-                  onValueChange={([value]) =>
-                    updateShadow({ saturation: value === 30 ? undefined : value })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              {/* Shadow Offsets */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-[10px] text-muted-foreground">
-                    X Offset (%)
-                  </Label>
-                  <Input
-                    type="number"
-                    placeholder="2"
-                    value={transforms.shadow?.offsetX ?? ""}
-                    onChange={(e) =>
-                      updateShadow({
-                        offsetX: e.target.value ? parseInt(e.target.value) : undefined,
-                      })
-                    }
-                    className={inputStyles}
-                    style={gradientBg}
-                  />
-                </div>
-                <div>
-                  <Label className="text-[10px] text-muted-foreground">
-                    Y Offset (%)
-                  </Label>
-                  <Input
-                    type="number"
-                    placeholder="2"
-                    value={transforms.shadow?.offsetY ?? ""}
-                    onChange={(e) =>
-                      updateShadow({
-                        offsetY: e.target.value ? parseInt(e.target.value) : undefined,
-                      })
-                    }
-                    className={inputStyles}
-                    style={gradientBg}
-                  />
-                </div>
-              </div>
-
-              <Button
-                variant="ghost"
-                onClick={resetShadow}
-                className="w-full rounded-full"
-              >
-                Reset Shadow
-              </Button>
-            </AccordionContent>
-          </AccordionItem>
-
           {/* Background */}
           <AccordionItem value="background">
             <AccordionTrigger className="py-3 cursor-pointer">
               <div className="flex items-center gap-2">
-                <Paintbrush className="size-4" />
+                <Palette className="size-4" />
                 Background
               </div>
             </AccordionTrigger>
@@ -292,7 +342,9 @@ const ImageEnhancementsPanel = ({
                     if (value === "none") {
                       update({ background: undefined });
                     } else {
-                      updateBackground({ type: value as "solid" | "blurred" | "dominant" });
+                      updateBackground({
+                        type: value as "solid" | "blurred" | "dominant",
+                      });
                     }
                   }}
                 >
@@ -308,13 +360,13 @@ const ImageEnhancementsPanel = ({
                 </Select>
               </div>
 
-              {/* Solid Color Background */}
               {currentBgType === "solid" && (
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">Color (Hex)</Label>
                   <Input
                     type="text"
                     placeholder="FFFFFF or FF0000"
+                    maxLength={8}
                     value={transforms.background?.color || ""}
                     onChange={(e) =>
                       updateBackground({ color: e.target.value || undefined })
@@ -323,25 +375,28 @@ const ImageEnhancementsPanel = ({
                     style={gradientBg}
                   />
                   <p className="text-[10px] text-muted-foreground">
-                    Enter 6-digit RGB hex (e.g., FF0000) or 8-digit RGBA hex
+                    6-digit RGB hex (FF0000) or 8-digit RGBA hex (FF000050)
                   </p>
                 </div>
               )}
 
-              {/* Blurred Background */}
               {currentBgType === "blurred" && (
                 <>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Blur Intensity</Label>
+                    <Label className="text-xs font-medium">
+                      Blur Intensity
+                    </Label>
                     <Select
                       value={
                         transforms.background?.blurIntensity === "auto"
                           ? "auto"
-                          : transforms.background?.blurIntensity?.toString() || "auto"
+                          : transforms.background?.blurIntensity?.toString() ||
+                            "auto"
                       }
                       onValueChange={(value) => {
                         updateBackground({
-                          blurIntensity: value === "auto" ? "auto" : parseInt(value),
+                          blurIntensity:
+                            value === "auto" ? "auto" : parseInt(value),
                         });
                       }}
                     >
@@ -350,13 +405,18 @@ const ImageEnhancementsPanel = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="auto">Auto</SelectItem>
-                        {Array.from({ length: 21 }, (_, i) => i * 5).map((val) => (
-                          <SelectItem key={val} value={val.toString()}>
-                            {val}
-                          </SelectItem>
-                        ))}
+                        {Array.from({ length: 21 }, (_, i) => i * 5).map(
+                          (val) => (
+                            <SelectItem key={val} value={val.toString()}>
+                              {val}
+                            </SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
+                    <p className="text-[10px] text-muted-foreground">
+                      0-100 (auto adjusts based on dimensions)
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -369,42 +429,98 @@ const ImageEnhancementsPanel = ({
                       step={5}
                       value={[transforms.background?.brightness ?? 0]}
                       onValueChange={([value]) =>
-                        updateBackground({ brightness: value === 0 ? undefined : value })
+                        updateBackground({
+                          brightness: value === 0 ? undefined : value,
+                        })
                       }
                       className="w-full"
                     />
                     <p className="text-[10px] text-muted-foreground">
-                      Negative values darken, positive values lighten
+                      Negative darkens, positive lightens (-255 to 255)
                     </p>
                   </div>
 
                   <p className="text-[10px] text-muted-foreground">
-                    Note: Only works with pad_resize crop mode
+                    ⚠️ Only works with pad_resize crop mode
                   </p>
                 </>
               )}
 
-              {/* Dominant Color Background */}
               {currentBgType === "dominant" && (
                 <p className="text-[10px] text-muted-foreground">
-                  Automatically uses the dominant color from image borders. Works with
-                  pad_resize and pad_extract.
+                  Automatically uses the dominant color from image borders.
+                  Works with pad_resize and pad_extract crop modes.
                 </p>
               )}
 
               <Button
                 variant="ghost"
                 onClick={resetBackground}
-                className="w-full rounded-full"
+                className={`w-full ${buttonStyles}`}
+                style={gradientBg}
               >
                 Reset Background
+              </Button>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Border */}
+          <AccordionItem value="border">
+            <AccordionTrigger className="py-3 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <SquareDashed className="size-4" />
+                Border
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2 px-0.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Width (px)</Label>
+                  <Input
+                    type="text"
+                    placeholder="5"
+                    value={transforms.border?.width ?? ""}
+                    onChange={(e) =>
+                      updateBorder({ width: e.target.value || undefined })
+                    }
+                    className={inputStyles}
+                    style={gradientBg}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Number or Arithmetic Expression
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Color (Hex)</Label>
+                  <Input
+                    type="text"
+                    placeholder="FF0000"
+                    maxLength={6}
+                    value={transforms.border?.color ?? ""}
+                    onChange={(e) =>
+                      updateBorder({ color: e.target.value || undefined })
+                    }
+                    className={inputStyles}
+                    style={gradientBg}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    6-digit RGB hex
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={resetBorder}
+                className={`w-full ${buttonStyles}`}
+                style={gradientBg}
+              >
+                Reset Border
               </Button>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
       </div>
 
-      {/* Action Buttons */}
       <div className="pt-4 pb-12 px-0.5">
         <div className="flex gap-2">
           <Button

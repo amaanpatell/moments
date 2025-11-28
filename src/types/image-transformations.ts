@@ -107,6 +107,12 @@ export type Enhancements = {
     blurIntensity?: number | "auto"; // for blurred
     brightness?: number; // -255 to 255
   };
+  border?: { // Corresponds to ImageKit 'b' parameter
+    width: number | string; // e.g., 5 or 'ih_div_20'
+    color: string; // Hex code RRGGBB
+  };
+  rotate?: number | "auto" | `N${number}`; // Corresponds to ImageKit 'rt' parameter
+  flip?: "h" | "v" | "h_v"; // Corresponds to ImageKit 'fl' parameter
 };
 
 export type AiMagic = {

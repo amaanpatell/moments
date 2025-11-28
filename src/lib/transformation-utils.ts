@@ -19,7 +19,7 @@ function basicsToParams(basics: BasicsTransform): string[] {
   if (basics.width) parts.push(`w-${basics.width}`);
   if (basics.height) parts.push(`h-${basics.height}`);
   if (basics.aspectRatio) parts.push(`ar-${basics.aspectRatio}`);
-  if (basics.cropMode) parts.push(`c-${basics.cropMode}`);
+  if (basics.cropMode) parts.push(`cm-${basics.cropMode}`);
   if (basics.focus) parts.push(`fo-${basics.focus}`);
   if (basics.zoom !== undefined) parts.push(`z-${basics.zoom}`);
   if (basics.dpr) parts.push(`dpr-${basics.dpr}`);
@@ -64,7 +64,7 @@ function overlaysToParams(overlays: Overlay[]): string[] {
       if (o.rotation !== undefined) params.push(`rt-${o.rotation}`);
       if (o.flip) params.push(`fl-${o.flip}`);
       params.push("l-end");
-      parts.push(params.join(","));
+      parts.push(...params);
     }
 
     if (o.type === "text") {
@@ -82,7 +82,7 @@ function overlaysToParams(overlays: Overlay[]): string[] {
       if (o.rotation !== undefined) params.push(`rt-${o.rotation}`);
       if (o.flip) params.push(`fl-${o.flip}`);
       params.push("l-end");
-      parts.push(params.join(","));
+      parts.push(...params);
     }
 
     if (o.type === "gradient") {
@@ -95,7 +95,7 @@ function overlaysToParams(overlays: Overlay[]): string[] {
       if (o.height) params.push(`h-${o.height}`);
       if (o.radius) params.push(`r-${o.radius}`);
       params.push("l-end");
-      parts.push(params.join(","));
+      parts.push(...params);
     }
 
     if (o.type === "solid") {
@@ -106,7 +106,7 @@ function overlaysToParams(overlays: Overlay[]): string[] {
       if (o.opacity !== undefined) params.push(`o-${o.opacity}`);
       if (o.radius) params.push(`r-${o.radius}`);
       params.push("l-end");
-      parts.push(params.join(","));
+      parts.push(...params);
     }
   });
 
@@ -137,14 +137,13 @@ function videoOverlaysToParams(overlays: VideoOverlay[]): string[] {
       if (o.height) p.push(`h-${o.height}`);
       if (o.radius) p.push(`r-${o.radius}`);
     }
-    // shared overlay controls
     if (o.x) p.push(`lx-${o.x}`);
     if (o.y) p.push(`ly-${o.y}`);
     if (o.startOffset) p.push(`lso-${o.startOffset}`);
     if (o.endOffset) p.push(`leo-${o.endOffset}`);
     if (o.duration) p.push(`ldu-${o.duration}`);
     p.push("l-end");
-    parts.push(p.join(","));
+    parts.push(...p);
   });
   return parts;
 }
@@ -157,31 +156,87 @@ function enhancementsToParams(enh: Enhancements): string[] {
   if (enh.sharpen) parts.push(`e-sharpen-${enh.sharpen}`);
   if (enh.shadow) {
     const s = enh.shadow;
-    const shadowParts: string[] = ["e-shadow"];
+    const shadowParts: string[] = [];
+
     if (s.blur !== undefined) shadowParts.push(`bl-${s.blur}`);
     if (s.saturation !== undefined) shadowParts.push(`st-${s.saturation}`);
-    if (s.offsetX !== undefined) shadowParts.push(`x-${s.offsetX}`);
-    if (s.offsetY !== undefined) shadowParts.push(`y-${s.offsetY}`);
-    parts.push(shadowParts.join("_"));
+    if (s.offsetX !== undefined) {
+      const xVal = s.offsetX < 0 ? `N${Math.abs(s.offsetX)}` : s.offsetX;
+      shadowParts.push(`x-${xVal}`);
+    }
+    if (s.offsetY !== undefined) {
+      const yVal = s.offsetY < 0 ? `N${Math.abs(s.offsetY)}` : s.offsetY;
+      shadowParts.push(`y-${yVal}`);
+    }
+
+    if (shadowParts.length > 0) {
+      parts.push(`e-shadow-${shadowParts.join("_")}`);
+    } else {
+      parts.push("e-shadow");
+    }
   }
   if (enh.background) {
     const bg = enh.background;
-    if (bg.type === "solid" && bg.color) parts.push(`bg-${bg.color}`);
-    if (bg.type === "blurred") {
-      const val = ["bg-blurred"];
-      if (bg.blurIntensity) val.push(`${bg.blurIntensity}`);
-      if (bg.brightness) val.push(`${bg.brightness}`);
-      parts.push(val.join("_"));
+
+    if (bg.type === "solid") {
+      if (bg.color) {
+        parts.push(`bg-${bg.color}`);
+      }
+    } else if (bg.type === "blurred") {
+      let bgParam = "bg-blurred";
+
+      const hasIntensity = bg.blurIntensity !== undefined;
+      const hasBrightness = bg.brightness !== undefined && bg.brightness !== 0;
+
+      if (hasIntensity || hasBrightness) {
+        const blurredParts: string[] = [];
+
+        if (hasIntensity) {
+          blurredParts.push(
+            bg.blurIntensity === "auto" ? "auto" : String(bg.blurIntensity)
+          );
+        }
+
+        if (hasBrightness) {
+          const brightnessVal =
+            bg.brightness! < 0
+              ? `N${Math.abs(bg.brightness!)}`
+              : String(bg.brightness);
+          blurredParts.push(brightnessVal);
+        }
+
+        if (blurredParts.length > 0) {
+          bgParam = `bg-blurred_${blurredParts.join("_")}`;
+        }
+      }
+
+      parts.push(bgParam);
+    } else if (bg.type === "dominant") {
+      parts.push("bg-dominant");
     }
-    if (bg.type === "dominant") parts.push("bg-dominant");
   }
+
+  // Border (b)
+  if (enh.border) {
+    parts.push(`b-${enh.border.width}_${enh.border.color}`);
+  }
+
+  // Rotate (rt)
+  if (enh.rotate !== undefined) {
+    if (typeof enh.rotate === "number" && enh.rotate < 0) {
+      parts.push(`rt-N${Math.abs(enh.rotate)}`);
+    } else {
+      parts.push(`rt-${enh.rotate}`);
+    }
+  }
+  if (enh.flip) parts.push(`fl-${enh.flip}`);
+
   return parts;
 }
 
 function videoEnhancementsToParams(enh: VideoEnhancements): string[] {
   const parts: string[] = [];
 
-  // trimming
   if (enh.trimming) {
     const t = enh.trimming;
     if (t.startOffset !== undefined) parts.push(`so-${t.startOffset}`);
@@ -189,7 +244,6 @@ function videoEnhancementsToParams(enh: VideoEnhancements): string[] {
     if (t.duration !== undefined) parts.push(`du-${t.duration}`);
   }
 
-  // thumbnail transforms
   if (enh.thumbnail) {
     const th = enh.thumbnail;
     if (th.time !== undefined) parts.push(`so-${th.time}`);
@@ -312,7 +366,6 @@ export function buildImageKitUrl(
 
   try {
     const url = new URL(src);
-
     const base = url.origin + url.pathname;
     const search = url.search
       ? `${url.search.replace(/^\?/, "")}&tr=${tr}`
