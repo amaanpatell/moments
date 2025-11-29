@@ -15,7 +15,8 @@ export type FocusMode =
   | "top_left"
   | "top_right"
   | "bottom_left"
-  | "bottom_right";
+  | "bottom_right"
+  | "custom";
 
 export type BasicsTransform = {
   width?: number | string; // w
@@ -23,6 +24,13 @@ export type BasicsTransform = {
   aspectRatio?: string; // ar e.g. "16-9" or expr
   cropMode?: CropMode; // c / cm
   focus?: FocusMode; // fo
+  cropping?: {
+    type?: "smart" | "face" | "object";
+    objectName?: string; // for object aware
+    zoom?: number;
+    width?: number;
+    height?: number;
+  };
   background?: {
     type: "solid" | "blurred";
     color?: string; // hex, rgba, or color name

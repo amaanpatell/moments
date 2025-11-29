@@ -41,6 +41,13 @@ function videoBasicsToParams(b: VideoBasics): string[] {
   if (b.border) p.push(`b-${b.border}`);
   if (b.radius !== undefined) p.push(`r-${b.radius}`);
   if (b.background) p.push(`bg-${b.background}`);
+  if (b.cropping) {
+    const c = b.cropping;
+    if (c.type === "smart") p.push("fo-auto");
+    if (c.type === "face") p.push("fo-face");
+    if (c.type === "object" && c.objectName) p.push(`fo-${c.objectName}`);
+    if (c.zoom !== undefined) p.push(`z-${c.zoom}`);
+  }
   return p;
 }
 

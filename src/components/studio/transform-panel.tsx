@@ -1,8 +1,9 @@
 import { TransformationConfig } from "@/types";
 import { type SectionKey } from "./dock";
-import { ImageBasicsPanel } from "./image-basics-panel";
-import { ImageAIPanel } from "./image-ai-panel";
-import ImageEnhancementsPanel from "./image-enhancements-panel";
+import { ImageBasicsPanel } from "./image-panel/image-basics-panel";
+import { ImageAIPanel } from "./image-panel/image-ai-panel";
+import ImageEnhancementsPanel from "./image-panel/image-enhancements-panel";
+import { VideoBasicsPanel } from "./video-panel/video-basics-panel";
 
 type TransformPanelProps = {
   activeSection: SectionKey;
@@ -45,7 +46,14 @@ export function TransformPannel({
             />
           );
         } else if (transforms.type === "VIDEO") {
-          return <>Video Basics</>;
+          return (
+            <VideoBasicsPanel 
+              transforms={transforms.basics || {}}
+              onTransformChange={(b) =>
+                onTransformChange({ ...transforms, basics: b })
+              }
+            />
+          );
         }
       case "enhancements":
         if (transforms.type === "IMAGE") {
