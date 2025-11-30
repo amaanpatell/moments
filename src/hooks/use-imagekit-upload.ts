@@ -10,7 +10,7 @@ import {
 } from "@imagekit/next";
 
 import { createMedia } from "@/actions/media.action";
-import { SelectMediaModel } from "@/db/schema";
+import { SelectMediaModel } from "@/db/schema/media";
 
 export type UploadFile = {
   id: string;

@@ -4,6 +4,8 @@ import { ImageBasicsPanel } from "./image-panel/image-basics-panel";
 import { ImageAIPanel } from "./image-panel/image-ai-panel";
 import ImageEnhancementsPanel from "./image-panel/image-enhancements-panel";
 import { VideoBasicsPanel } from "./video-panel/video-basics-panel";
+import VideoAudioPanel from "./video-panel/video-audio-panel";
+import VideoEnhancementsPanel from "./video-panel/video-enhancements-panel";
 
 type TransformPanelProps = {
   activeSection: SectionKey;
@@ -47,7 +49,7 @@ export function TransformPannel({
           );
         } else if (transforms.type === "VIDEO") {
           return (
-            <VideoBasicsPanel 
+            <VideoBasicsPanel
               transforms={transforms.basics || {}}
               onTransformChange={(b) =>
                 onTransformChange({ ...transforms, basics: b })
@@ -62,11 +64,20 @@ export function TransformPannel({
               transforms={transforms.enhancements || {}}
               onTransformChange={(e) =>
                 onTransformChange({ ...transforms, enhancements: e })
-              }            
+              }
             />
+          );
+        } else if( transforms.type === "VIDEO") {
+          return (
+            <VideoEnhancementsPanel
+            transforms={transforms.basics || {}}
+              onTransformChange={(b) =>
+                onTransformChange({ ...transforms, basics: b })
+              }
+          />
           )
         }
-        return <p>Enhancements</p>;
+        
       // case "overlays":
       //   return <p>Overlays & Effects</p>;
       case "ai":
@@ -83,7 +94,16 @@ export function TransformPannel({
           return <p>Video AI Magic</p>;
         }
       case "audio":
-        return <p>Audio</p>;
+        if (transforms.type === "VIDEO") {
+          return (
+            <VideoAudioPanel
+              transforms={transforms.audio || {}}
+              onTransformChange={(a) =>
+                onTransformChange({ ...transforms, audio: a })
+              }
+            />
+          );
+        }
       default:
         return (
           <div className="p-4 text-center text-gray-500">

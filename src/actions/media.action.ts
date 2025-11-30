@@ -1,9 +1,10 @@
+// actions/media.action.ts
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { cache } from "react";
 
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -15,7 +16,7 @@ import {
   media,
   mediaQuerySchema,
   updateMediaSchema,
-} from "@/db/schema/index";
+} from "@/db/schema/media";
 import { handleError } from "@/lib/handlers";
 import action from "@/lib/handlers/action";
 import { PaginatedSearchParamsSchema } from "@/lib/schema";
@@ -27,7 +28,7 @@ export const createMedia = async (
   const validationResult = await action({
     params,
     schema: createMediaSchema,
-    authorize: false, // TODO: after adding auth, it should be true
+    authorize: true,
   });
 
   if (validationResult instanceof Error) {
@@ -37,6 +38,8 @@ export const createMedia = async (
   const { fileName, originalUrl, mediaType, transformationConfig } =
     validationResult.params!;
 
+  const userId = validationResult.session!.user.id;
+
   try {
     const [newMedia] = await db
       .insert(media)
@@ -45,6 +48,7 @@ export const createMedia = async (
         originalUrl,
         mediaType,
         transformationConfig,
+        userId,
       })
       .returning();
 
@@ -67,7 +71,7 @@ export const getMedia = cache(
     const validationResult = await action({
       params,
       schema: mediaQuerySchema,
-      authorize: false,
+      authorize: true,
     });
 
     if (validationResult instanceof Error) {
@@ -75,12 +79,13 @@ export const getMedia = cache(
     }
 
     const { id } = validationResult.params!;
+    const userId = validationResult.session!.user.id;
 
     try {
       const [mediaItem] = await db
         .select()
         .from(media)
-        .where(eq(media.id, id))
+        .where(and(eq(media.id, id), eq(media.userId, userId)))
         .limit(1);
 
       if (!mediaItem) {
@@ -103,7 +108,7 @@ export const getAllMedia = cache(
     const validationResult = await action({
       params,
       schema: PaginatedSearchParamsSchema,
-      authorize: false,
+      authorize: true,
     });
 
     if (validationResult instanceof Error) {
@@ -111,13 +116,20 @@ export const getAllMedia = cache(
     }
 
     const { page = 1, pageSize = 10, filter } = validationResult.params!;
+    const userId = validationResult.session!.user.id;
     const skip = (Number(page) - 1) * pageSize;
     const limit = Number(pageSize);
 
     try {
-      const whereCondition = filter
-        ? eq(media.mediaType, filter.toUpperCase() as "IMAGE" | "VIDEO")
-        : undefined;
+      const conditions = [eq(media.userId, userId)];
+
+      if (filter) {
+        conditions.push(
+          eq(media.mediaType, filter.toUpperCase() as "IMAGE" | "VIDEO")
+        );
+      }
+
+      const whereCondition = and(...conditions);
 
       const [totalResult] = await db
         .select({ count: count() })
@@ -155,7 +167,7 @@ export const updateMedia = async (
   const validationResult = await action({
     params,
     schema: updateMediaSchema,
-    authorize: false,
+    authorize: true,
   });
 
   if (validationResult instanceof Error) {
@@ -163,6 +175,7 @@ export const updateMedia = async (
   }
 
   const { id, transformedUrl, transformationConfig } = validationResult.params!;
+  const userId = validationResult.session!.user.id;
 
   try {
     const [updatedMedia] = await db
@@ -171,7 +184,7 @@ export const updateMedia = async (
         transformedUrl,
         transformationConfig,
       })
-      .where(eq(media.id, id))
+      .where(and(eq(media.id, id), eq(media.userId, userId)))
       .returning();
 
     if (!updatedMedia) {

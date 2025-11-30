@@ -27,15 +27,6 @@ const Footer = () => {
           </Link>
 
           <Link
-            href="https://github.com/amaanpatell"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:opacity-80 transition"
-          >
-            <Github width={18} height={18} />
-          </Link>
-
-          <Link
             href="https://www.linkedin.com/in/amaan-patel-8251061a1/"
             target="_blank"
             rel="noreferrer"

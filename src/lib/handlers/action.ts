@@ -1,7 +1,10 @@
+// lib/handlers/action.ts
 "use server";
 
 import { ZodError, z } from "zod";
 import { UnauthorizedError, ValidationError } from "../http-errors";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 type ActionOptions<T> = {
   params?: T;
@@ -23,15 +26,11 @@ const action = async <T>({ params, schema, authorize }: ActionOptions<T>) => {
     }
   }
 
-  let session: boolean | null = null;
+  let session = null;
 
   if (authorize) {
-    // TODO: Replace with actual session retrieval from your auth provider
-    // Example: const session = await getServerSession(authOptions);
-    // Example: const session = await auth();
-    // Example: const session = await getUserFromCookie();
-
-    session = true; // Replace with real auth
+    // Get actual session from Better Auth
+    session = await auth.api.getSession({ headers: await headers() });
 
     if (!session) {
       return new UnauthorizedError();

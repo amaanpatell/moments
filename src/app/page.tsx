@@ -40,7 +40,7 @@ async function MediaGrid() {
   if (!result.success) {
     return (
       <div className="py-24 text-center">
-        <h3 className="mb-2 text-lg">Oops, failed to load media try again</h3>
+        <h3 className="mb-2 text-lg">Login to see Media</h3>
         <p className="text-gray-500">
           {result.error?.message || "Something went wrong"}
         </p>

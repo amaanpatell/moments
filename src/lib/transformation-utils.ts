@@ -35,7 +35,7 @@ function videoBasicsToParams(b: VideoBasics): string[] {
   if (b.width) p.push(`w-${b.width}`);
   if (b.height) p.push(`h-${b.height}`);
   if (b.aspectRatio) p.push(`ar-${b.aspectRatio}`);
-  if (b.cropMode) p.push(`c-${b.cropMode}`);
+  if (b.cropMode) p.push(`cm-${b.cropMode}`);
   if (b.focus) p.push(`fo-${b.focus}`);
   if (b.rotate !== undefined) p.push(`rt-${b.rotate}`);
   if (b.border) p.push(`b-${b.border}`);
