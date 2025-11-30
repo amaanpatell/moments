@@ -1,6 +1,5 @@
 "use client";
 
-import { SelectMediaModel } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { SectionKey, StudioDock } from "./dock";
@@ -11,6 +10,7 @@ import { StudioHeader } from "./studio-header";
 import UrlBar from "./url-bar";
 import PreviewCanvas from "./preview-canvas";
 import { TransformPannel } from "./transform-panel";
+import { SelectMediaModel } from "@/db/schema/media";
 
 type StudioClientProps = {
   media: SelectMediaModel;

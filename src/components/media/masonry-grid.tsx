@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import Logo from "../logo";
 import MediaCard from "./media-card";
-import { SelectMediaModel } from "@/db/schema";
+import { SelectMediaModel } from "@/db/schema/media";
 
 type MasonryGridProps = {
   media: SelectMediaModel[];

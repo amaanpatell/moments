@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import ROUTES from "@/constants/routes";
 
 import { Button } from "../ui/button";
-import { SelectMediaModel } from "@/db/schema";
+import { SelectMediaModel } from "@/db/schema/media";
 
 type MediaCardProps = SelectMediaModel & {
   activeVideoId?: string | null;

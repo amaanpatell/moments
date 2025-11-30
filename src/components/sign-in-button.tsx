@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import SignInDialog from "@/app/(auth)/sign-in/page";
+import SignInDialog from "./SignInDialog";
 
 const SignInButton = () => {
   const [signingInOpen, setSigningInOpen] = useState(false);
