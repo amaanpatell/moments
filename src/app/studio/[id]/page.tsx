@@ -1,4 +1,3 @@
-// app/studio/[id]/page.tsx
 import { getMedia } from "@/actions/media.action";
 import NotFound from "@/app/not-found";
 import StudioClient from "@/components/studio/studio-client";
@@ -17,7 +16,7 @@ const Studio = async ({ params }: RouteParams) => {
 
   return (
     <div className="h-full flex flex-col justify-center">
-      <StudioClient media={media.data} />
+      <StudioClient media={media.data!} />
     </div>
   );
 };
