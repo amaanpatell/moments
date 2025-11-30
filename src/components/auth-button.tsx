@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "./ui/button";
-import SignInDialog from "@/app/(auth)/sign-in/page";
 import { LogOut, Loader2, User as UserIcon, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import SignInDialog from "./SignInDialog";
 
 const AuthButton = () => {
   const [signingInOpen, setSigningInOpen] = useState(false);
