@@ -8,7 +8,7 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     await signIn.social({
       provider: "google",
-      callbackURL: "/studio",
+      callbackURL: "/",
     });
   };
 
